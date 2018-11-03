@@ -32,6 +32,7 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
     write_general_constraint(bit_maps, index_general_const)
     write_general_constraint_per_year(bit_maps_per_years, index_general_const_per_years)
     write_constraints_per_teacher(bit_maps_per_teachers, index_const_per_teachers)
+    close_opposite_session(schedule)
 
     with open('test_file.mzn', mode='a') as file:
         file.write('\n')
@@ -164,3 +165,9 @@ def write_constraints_per_teacher(bit_maps, index_general_const):
                 for index in i:
                     for bit_map in b:
                         file.write('constraint ' + bit_map + '[' + str(index) + ']' + ' = 0;\n')
+
+
+def close_opposite_session(schedule_data):
+    for s, closed in zip(['M', 'T'], [AFTERNOON_CLOSED, MORNING_CLOSED]):
+        bit_maps = create_bit_maps_ids_given_session(schedule_data, s)
+        write_general_constraint(bit_maps, closed)

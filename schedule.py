@@ -1,18 +1,7 @@
 import pandas as pd
 
-'''
-Cosas a cambiar
-
-1) La funcion group_with_teacher_constraint() pudiera
-    dividirse en dos y que cada una tuviera una sola 
-    'responsabilidad', una que reciba un profesor y devuelva
-    una lista con los grupos con restricciones para ese profesor
-    especifico, y la otra que tenga una lista con todos los
-    profesores y utilice la otra funcion para conformar la lista
-    con todas las restricciones
-
-2)
-'''
+AFTERNOON_CLOSED = [4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24, 28, 29, 30]
+MORNING_CLOSED = [1, 2, 3, 7, 8, 9, 13, 14, 15, 19, 20, 21, 25, 26, 27]
 
 
 def create_bit_maps_ids(schedule_data):
@@ -54,13 +43,24 @@ def create_bit_maps_ids_given_teacher_list(schedule_data, teachers):
     return [create_bit_maps_ids_given_teacher(schedule_data, teacher) for teacher in teachers]
 
 
+def create_bit_maps_ids_given_session(schedule_data, session):
+    '''
+
+    :param schedule_data:
+    :param session:
+    :return:
+    '''
+    return [schedule_data.loc[i]['Grupo'] + '_' + schedule_data.loc[i]['Asignatura'] + '_' +
+            schedule_data.loc[i]['Orden'] for i in schedule_data.loc[schedule_data['Sesion'] == session].index]
+
+
 def index_general_constraints(constraint_data):
     '''
 
     :param constraint_data:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia']*3 + constraint_data.loc[i]['Turno']
+    return [constraint_data.loc[i]['Dia']*6 + constraint_data.loc[i]['Turno']
             for i in constraint_data.loc[constraint_data['Año'] == 'todos'].index]
 
 
@@ -75,7 +75,7 @@ def index_general_constraints_given_year(constraint_data, year):
     :param year:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia']*3 + constraint_data.loc[i]['Turno']
+    return [constraint_data.loc[i]['Dia']*6 + constraint_data.loc[i]['Turno']
             for i in constraint_data.loc[constraint_data['Año'] == year].index]
 
 
@@ -86,7 +86,7 @@ def index_constraints_given_teacher(constraint_data, teacher):
     :param teacher:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia'] * 3 + constraint_data.loc[i]['Turno']
+    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
             for i in constraint_data.loc[constraint_data['Profesor'] == teacher].index]
 
 

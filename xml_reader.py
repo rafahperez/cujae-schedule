@@ -63,17 +63,18 @@ def join_sequence_relation(sequence, relation):
     :param relation:
     :return:
     '''
-    data = pd.DataFrame(columns=['Año', 'Asignatura', 'Tipo', 'Orden', 'Profesor', 'Grupo', 'Unir'])
+    data = pd.DataFrame(columns=['Año', 'Sesion', 'Asignatura', 'Tipo', 'Orden', 'Profesor', 'Grupo', 'Unir'])
     k = 1
     for i in sequence.index:
         año = sequence.loc[i].Año
+        sesion = sequence.loc[i].Sesion
         asig = sequence.loc[i].Asignatura
         tipo = sequence.loc[i].Tipo
         orden = sequence.loc[i].Orden
         for j in relation.loc[(relation.Asignatura == asig) & (relation.Tipo == tipo)].index:
             prof = relation.loc[j].Profesor
             grupo = relation.loc[j].Grupo
-            data.loc[k] = pd.Series([año, asig, tipo, orden, prof, grupo, '-'], index=['Año', 'Asignatura', 'Tipo', 'Orden', 'Profesor', 'Grupo', 'Unir'])
+            data.loc[k] = pd.Series([año, sesion, asig, tipo, orden, prof, grupo, '-'], index=['Año', 'Sesion', 'Asignatura', 'Tipo', 'Orden', 'Profesor', 'Grupo', 'Unir'])
             k += 1
     return data
 
@@ -92,9 +93,9 @@ def join_union_with_data(data, union):
 def xml_to_dataframe(sequence_xml, relation_xml, union_xml):
     '''
 
-    :param sequence:
-    :param relation:
-    :param union:
+    :param sequence_xml:
+    :param relation_xml:
+    :param union_xml:
     :return:
     '''
 
@@ -115,7 +116,7 @@ def read_general_constraints(file_dir):
         day = int(constraint.get('dia')) - 1
         turno = int(constraint.get('turno'))
         año = constraint.get('año')
-        general_constraints.loc[index] = pd.Series([año, day, turno], index = ['Año', 'Dia', 'Turno'])
+        general_constraints.loc[index] = pd.Series([año, day, turno], index=['Año', 'Dia', 'Turno'])
         index += 1
     return general_constraints
 
