@@ -25,8 +25,8 @@
 			<clase desc='conf' orden='1'/>
 		</asignatura>
 		<asignatura nombre='II3'>
-			<clase desc='cp' orden='1'/>
-			<clase desc='cp' orden='2'/>
+			<clase desc='conf' orden='1'/>
+			<clase desc='conf' orden='2'/>
 		</asignatura>
 	</año>
 	<año id='3' sesion='M'>

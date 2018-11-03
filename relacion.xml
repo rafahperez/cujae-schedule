@@ -19,4 +19,56 @@
 			<grupo id='G23'/>
 		</clase>
 	</asignatura>
+	<asignatura nombre='M3'>
+		<clase desc='conf' profesor='esther'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+		<clase desc='cp' profesor='olga'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+            <grupo id='G23'/>
+		</clase>
+	</asignatura>
+    <asignatura nombre='ED'>
+		<clase desc='conf' profesor='olapeira'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+        <clase desc='cp' profesor='olapeira'>
+            <grupo id='G23'/>
+		</clase>
+		<clase desc='cp' profesor='fernanda'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+		</clase>
+	</asignatura>
+    <asignatura nombre='AC'>
+		<clase desc='conf' profesor='tpina'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+		<clase desc='cp' profesor='egil'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+            <grupo id='G23'/>
+		</clase>
+	</asignatura>
+    <asignatura nombre='PSCT'>
+		<clase desc='conf' profesor='manuel'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+	</asignatura>
+    <asignatura nombre='II3'>
+		<clase desc='conf' profesor='maria'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+	</asignatura>
 </reglas>

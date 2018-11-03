@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <restriccion>
-	<turno año='2' dia='3' turno='1'/>
-	<turno año='2' dia='3' turno='2'/>
-	<turno año='2' dia='3' turno='3'/>
-	<turno año='todos' dia='1' turno='1'/>
-	<turno año='todos' dia='1' turno='2'/>
 	<turno año='todos' dia='1' turno='3'/>
 </restriccion>
