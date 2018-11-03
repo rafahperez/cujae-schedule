@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<secuencia>
+	<año id='1' sesion='T'>
+	</año>
+	<año id='2' sesion='M'>
+		<asignatura nombre='M3'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+		</asignatura>
+		<asignatura nombre='RA'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+			<clase desc='lab' orden='3'/>
+		</asignatura>
+		<asignatura nombre='AC'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+		</asignatura>
+		<asignatura nombre='ED'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+			<clase desc='cp' orden='3'/>
+		</asignatura>
+		<asignatura nombre='PSCT'>
+			<clase desc='conf' orden='1'/>
+		</asignatura>
+		<asignatura nombre='II3'>
+			<clase desc='cp' orden='1'/>
+			<clase desc='cp' orden='2'/>
+		</asignatura>
+	</año>
+	<año id='3' sesion='M'>
+	</año>
+	<año id='4' sesion='M'>
+	</año>
+	<año id='5' sesion='M'>
+	</año>
+</secuencia>

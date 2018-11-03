@@ -1,0 +1,16 @@
+Restricciones resueltas:
+
+1) Cada grupo solo tiene un turno de la misma clase una vez por semana.
+2) Cada grupo solo tiene un turno a la vez
+3) Unir los grupos para clases especificadas
+4) Un profesor no puede estar en mas de un turno a la vez.
+5) Conferencia y Clases Practicas en dias diferentes
+6) Respetado el orden de la secuencia
+7) Creadas restricciones generales y añadidas al mzn
+8) Creadas restricciones por profesor y añadidas al mzn
+
+Restricciones por resolver:
+1) Generalizar para los 30 espacios en el horario, teniendo en cuenta la sesion (Mannana y Tarde)
+    1.1) No puede tener ocupado ultimo de la mañana y primero de la tarde a la vez.
+2) Ver turnos especiales como los seminarios de IS, que son turnos seguidos (Nota: Ponerle el mismo Orden)
+3) Cómo modelar cuando la cantidad de espacios disponibles sea menor que la cant de turnos a dar.

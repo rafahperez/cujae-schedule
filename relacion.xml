@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reglas>
+	<asignatura nombre='RA'>
+		<clase desc='conf' profesor='raisa'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+		<clase desc='cp' profesor='eguevara'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+		</clase>
+		<clase desc='cp' profesor='rhernandezpe'>
+			<grupo id='G23'/>
+		</clase>
+		<clase desc='lab' profesor='ldenis'>
+			<grupo id='G21'/>
+			<grupo id='G22'/>
+			<grupo id='G23'/>
+		</clase>
+	</asignatura>
+</reglas>

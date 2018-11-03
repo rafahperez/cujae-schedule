@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reglas>
+	<union grupo='G11' con='G12'>
+		<clase desc='conf' de='M1'/>
+	</union>
+	<union grupo='G13' con='G14'>
+		<clase desc='conf' de='M1'/>
+	</union>
+	<union grupo='G15' con='G16'>
+		<clase desc='conf' de='M1'/>
+	</union>
+	<union grupo='G21' con='G22'>
+		<clase desc='conf' de='M3'/>
+		<clase desc='conf' de='RA'/>
+		<clase desc='conf' de='ED'/>
+		<clase desc='conf' de='AC'/>
+	</union>
+	<union grupo='G31' con='G32'>
+		<clase desc='conf' de='PW'/>
+	</union>
+</reglas>
