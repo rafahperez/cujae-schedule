@@ -247,7 +247,7 @@ def count_opposite_session_slots(schedule_data, general_constraints):
 
 def get_session_given_year(schedule_data, year):
     session = None
-    data = schedule_data.loc[schedule_data['Año'] == str(year)]['Sesion']
+    data = schedule_data.loc[schedule_data['Año'] == str(year)]['Sesion'].reset_index(drop='index')
     if len(data) != 0:
-        session = data[1]
+        session = data[0]
     return session

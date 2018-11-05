@@ -37,14 +37,15 @@ def read_relation(relation_xml_dir):
     """
 
     root = ET.parse(relation_xml_dir).getroot()
-    relation = pd.DataFrame(columns=['Asignatura', 'Tipo', 'Profesor', 'Grupo'])
+    relation = pd.DataFrame(columns=['Año', 'Asignatura', 'Tipo', 'Profesor', 'Grupo'])
     index = 1
-    for subject in root:
-        for c in subject:
-            for group in c:
-                relation.loc[index] = pd.Series([subject.get('nombre'), c.get('desc'), c.get('profesor'),
-                                                 group.get('id')], index=['Asignatura', 'Tipo', 'Profesor', 'Grupo'])
-                index += 1
+    for year in root:
+        for subject in year:
+            for c in subject:
+                for group in c:
+                    relation.loc[index] = pd.Series([year.get('id'), subject.get('nombre'), c.get('desc'), c.get('profesor'),
+                                                     group.get('id')], index=['Año', 'Asignatura', 'Tipo', 'Profesor', 'Grupo'])
+                    index += 1
     return relation
 
 
@@ -119,7 +120,7 @@ def join_sequence_relation(sequence, relation):
         subject = sequence.loc[i]['Asignatura']
         type = sequence.loc[i]['Tipo']
         order = sequence.loc[i]['Orden']
-        for j in relation.loc[(relation['Asignatura'] == subject) & (relation['Tipo'] == type)].index:
+        for j in relation.loc[(relation['Año'] == year) & (relation['Asignatura'] == subject) & (relation['Tipo'] == type)].index:
             teacher = relation.loc[j]['Profesor']
             group = relation.loc[j]['Grupo']
             sequence_relation.loc[index] = pd.Series([year, session, subject, type, order, teacher, group, '-'],
