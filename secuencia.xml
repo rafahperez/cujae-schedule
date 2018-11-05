@@ -30,6 +30,35 @@
 		</asignatura>
 	</año>
 	<año id='3' sesion='M'>
+		<asignatura nombre='PEM'>
+			<clase desc='lab' orden='1'/>
+			<clase desc='conf' orden='2'/>
+            <clase desc='cp' orden='3'/>
+		</asignatura>
+		<asignatura nombre='SO'>
+			<clase desc='cp' orden='1'/>
+			<clase desc='lab' orden='2'/>
+		</asignatura>
+		<asignatura nombre='BDA'>
+			<clase desc='cp' orden='1'/>
+			<clase desc='lab' orden='2'/>
+		</asignatura>
+		<asignatura nombre='SN'>
+			<clase desc='conf' orden='1'/>
+            <clase desc='conf' orden='2'/>
+		</asignatura>
+		<asignatura nombre='PW'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+            <clase desc='lab' orden='3'/>
+		</asignatura>
+		<asignatura nombre='GEF'>
+			<clase desc='conf' orden='1'/>
+			<clase desc='cp' orden='2'/>
+		</asignatura>
+		<asignatura nombre='PSCT'>
+			<clase desc='conf' orden='1'/>
+		</asignatura>
 	</año>
 	<año id='4' sesion='M'>
 	</año>

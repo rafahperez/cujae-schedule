@@ -17,5 +17,10 @@
 	</union>
 	<union grupo='G31' con='G32'>
 		<clase desc='conf' de='PW'/>
+		<clase desc='conf' de='PEM'/>
+        <clase desc='conf' de='BDA'/>
+        <clase desc='conf' de='SO'/>
+        <clase desc='conf' de='GEF'/>
+        <clase desc='conf' de='SN'/>
 	</union>
 </reglas>
