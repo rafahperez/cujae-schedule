@@ -9,15 +9,10 @@ Restricciones resueltas:
 7) Creadas restricciones generales y añadidas al mzn
 8) Creadas restricciones por profesor y añadidas al mzn
 9) Generalizado a 30 espacios, teniendo en cuenta la sesion
+10) Modeladas semanas problematicas
+11) No puede tener ocupado ultimo de la mañana y primero de la tarde a la vez
 
 Restricciones por resolver:
-1) Como modelar semanas problematicas
-    1.1) No puede tener ocupado ultimo de la mañana y primero de la tarde a la vez.
 2) Ver turnos especiales como los seminarios de IS, que son turnos seguidos (Nota: Ponerle el mismo Orden)
-3) Cómo modelar cuando la cantidad de espacios disponibles sea menor que la cant de turnos a dar.
 4) Modelar la cantidad de aulas disponibles.
 5) Optimizar tiempo de los profesores.
-
-Notas relacionadas con 30 turnos
-Cerrar las sesiones contrarias de todos los años que no necesiten turnos extras
-(Cant turnos disponibles - (cant restricciones 'todos' + cant restricciones de año) >= cant clases a dar)
