@@ -4,6 +4,9 @@ import pymzn
 from schedule import *
 
 
+CONSTRAINTS_FILE = 'test_file.mzn'
+
+
 def write_mzn_file(schedule, general_constraints, teacher_constraints):
     '''
 
@@ -21,6 +24,8 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
     teachers_with_constraints = pd.unique(teacher_constraints['Profesor'])
     bit_maps_per_teachers = create_bit_maps_ids_given_teacher_list(schedule, teachers_with_constraints)
     index_const_per_teachers = index_constraints_given_teacher_list(teacher_constraints, teachers_with_constraints)
+    opposite_session_slots = count_opposite_session_slots(schedule, general_constraints)
+    bit_maps_per_group = create_bit_maps_per_group(schedule)
 
     write_file_header()
     write_file_bit_maps(bit_maps)
@@ -32,7 +37,8 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
     write_general_constraint(bit_maps, index_general_const)
     write_general_constraint_per_year(bit_maps_per_years, index_general_const_per_years)
     write_constraints_per_teacher(bit_maps_per_teachers, index_const_per_teachers)
-    close_opposite_session(schedule)
+    write_break_index(bit_maps_per_group)
+    write_opposite_session_constraint(bit_maps_per_group, opposite_session_slots)
 
     with open('test_file.mzn', mode='a') as file:
         file.write('\n')
@@ -171,3 +177,48 @@ def close_opposite_session(schedule_data):
     for s, closed in zip(['M', 'T'], [AFTERNOON_CLOSED, MORNING_CLOSED]):
         bit_maps = create_bit_maps_ids_given_session(schedule_data, s)
         write_general_constraint(bit_maps, closed)
+
+
+def write_break_index(bit_maps_per_group):
+    with open(CONSTRAINTS_FILE, mode='a') as file:
+        file.write('\n')
+        for top, bottom in BREAK_INDEX:
+            for year, group, bit_maps in bit_maps_per_group:
+                file.write('constraint ')
+                len_bit_maps = len(bit_maps)
+                for i in range(len_bit_maps):
+                    bit_map = bit_maps[i]
+                    file.write(bit_map + '[' + str(top) + '] + ' + bit_map + '[' + str(bottom) + ']')
+                    if i == len_bit_maps - 1:
+                        file.write('')
+                    else:
+                        file.write(' + ')
+                file.write(' <= 1;\n')
+
+
+def write_opposite_session_constraint(bit_maps_per_group, opposite_session_slots):
+    with open(CONSTRAINTS_FILE, mode='a') as file:
+        file.write('\n')
+        for year, group, bit_maps in bit_maps_per_group:
+            sess, needed_slots = opposite_session_slots[str(year)]
+            indexes = AFTERNOON_CLOSED if sess == 'M' else MORNING_CLOSED
+
+            len_bit_maps = len(bit_maps)
+            len_indexes = len(indexes)
+
+            file.write('constraint ')
+
+            for i in range(len_bit_maps):
+                bit_map = bit_maps[i]
+
+                for j in range(len_indexes):
+                    index = indexes[j]
+
+                    file.write(bit_map + '[' + str(index) + ']')
+
+                    if (i == len_bit_maps - 1) & (j == len_indexes - 1):
+                        file.write('')
+                    else:
+                        file.write(' + ')
+
+            file.write(' = ' + str(needed_slots) + ';\n')

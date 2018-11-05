@@ -2,6 +2,9 @@ import pandas as pd
 
 AFTERNOON_CLOSED = [4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24, 28, 29, 30]
 MORNING_CLOSED = [1, 2, 3, 7, 8, 9, 13, 14, 15, 19, 20, 21, 25, 26, 27]
+BREAK_INDEX = [(3, 4), (9, 10), (15, 16), (21, 22), (27, 28)]
+
+STANDARD_WEEK_SLOTS = 15
 
 
 def create_bit_maps_ids(schedule_data):
@@ -16,6 +19,14 @@ def create_bit_maps_ids(schedule_data):
 
 def create_bit_maps_per_year(schedule_data):
     return [create_bit_maps_ids_given_year(schedule_data, str(year)) for year in range(1, 6)]
+
+
+def create_bit_maps_per_group(schedule_data):
+    bit_maps = list()
+    for year in schedule_data.groupby(['Año']).count().index:
+        for group in schedule_data.loc[schedule_data['Año'] == year].groupby(['Grupo']).count().index:
+            bit_maps.append((year, group, create_bit_maps_ids(schedule_data.loc[schedule_data['Grupo'] == group])))
+    return bit_maps
 
 
 def create_bit_maps_ids_given_year(schedule_data, year):
@@ -188,3 +199,55 @@ def activities_order(schedule_data):
     return ids_act_order
 
 
+def count_classes_per_year(schedule_data):
+
+    classes_per_year = list()
+
+    for year in range(1, 6):
+        data = schedule_data.loc[schedule_data['Año'] == str(year)]
+        count = 0
+        if len(data) > 0:
+            n_groups = len(data.groupby(['Grupo']).count().index)
+            count = int(data.groupby(['Grupo', 'Asignatura']).count()['Tipo'].sum() / n_groups)
+        classes_per_year.append((year, count))
+
+    return classes_per_year
+
+
+def count_available_slots_per_year(general_constraint):
+
+    available_slots_per_year = list()
+    count_gen_const = len(general_constraint.loc[general_constraint['Año'] == 'todos'])
+
+    for year in range(1, 6):
+        count_year = len(general_constraint.loc[general_constraint['Año'] == str(year)])
+        available_slots_per_year.append((year, STANDARD_WEEK_SLOTS-count_gen_const-count_year))
+
+    return available_slots_per_year
+
+
+def count_opposite_session_slots(schedule_data, general_constraints):
+
+    classes_per_year = count_classes_per_year(schedule_data)
+    available_slots_per_year = count_available_slots_per_year(general_constraints)
+    opposite_session_need = dict()
+
+    for c, a in zip(classes_per_year, available_slots_per_year):
+        year, classes = c
+        same_year, available = a
+        if year == same_year:
+            sess = get_session_given_year(schedule_data, year)
+            need = classes - available
+            opposite_session_need[str(year)] = (sess, 0 if need < 0 else need)
+        else:
+            raise Exception('Exception while counting opposite session slots')
+
+    return opposite_session_need
+
+
+def get_session_given_year(schedule_data, year):
+    session = None
+    data = schedule_data.loc[schedule_data['Año'] == str(year)]['Sesion']
+    if len(data) != 0:
+        session = data[1]
+    return session

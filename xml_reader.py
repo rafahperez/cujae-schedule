@@ -59,7 +59,7 @@ def read_union(union_xml_dir):
     union = pd.DataFrame(columns=['Asignatura', 'Tipo', 'Unir', 'Con'])
     index = 1
     for groups in root:
-        for c in g:
+        for c in groups:
             union.loc[index] = pd.Series([c.get('de'), c.get('desc'), groups.get('grupo'), groups.get('con')],
                                          index=['Asignatura', 'Tipo', 'Unir', 'Con'])
             index += 1

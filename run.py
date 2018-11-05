@@ -1,7 +1,6 @@
 import sys
 import pandas as pd
 import pymzn
-import argparse
 from write_mzn import write_mzn_file
 from xml_reader import xml_to_dataframe, read_general_constraints, read_teacher_constraints
 
