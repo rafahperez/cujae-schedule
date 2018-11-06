@@ -232,28 +232,32 @@ def write_objective_function(schedule_data):
 
     with open(CONSTRAINTS_FILE, mode='a') as file:
         file.write('\n')
+        file.write('function var int: day(array[int] of var int: x) = (index(x) - 1) div 6;')
+
+        file.write('\n')
         file.write('function var int: penalty(array[int] of var int: x, array[int] of var int: y) = '
-                   'if (index(x) - 1) div 6 != (index(y) - 1) div 6 then 10 else 1 endif;')
+                   'if day(x) != day(y) then 30 else 1 endif;')
+
+        file.write('\n')
+        file.write('function var int: day_distance(array[int] of var int: x, array[int] of var int: y) = '
+                   'abs(day(x) - day(y));')
 
         file.write('\n')
         file.write('function var int: distance(array[int] of var int: x, array[int] of var int: y) = '
-                   'abs(index(y) - index(x));')
-
-        file.write('\n')
-        file.write('function var int: eval(array[int] of var int: x, array[int] of var int: y) = '
-                   'penalty(x, y) * distance(x, y);')
+                   'penalty(x, y) * abs(index(x) - index(y));')
 
         file.write('\n')
         file.write('solve minimize ')
 
         for i in range(length_so):
             bm_1, bm_2 = bit_maps_subject_order[i]
-            file.write('eval(' + bm_1 + ', ' + bm_2 + ')')
+            # !!! Using day_distance instead of distance
+            file.write('day_distance(' + bm_1 + ', ' + bm_2 + ')')
             file.write(' + ')
 
         for j in range(length_sg):
             bm_1, bm_2 = bit_maps_subject_group[j]
-            file.write('(-1)*distance(' + bm_1 + ', ' + bm_2 + ')')
+            file.write('(-1)*day_distance(' + bm_1 + ', ' + bm_2 + ')')
             if j == length_sg - 1:
                 continue
             else:
