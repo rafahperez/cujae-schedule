@@ -71,7 +71,7 @@ def index_general_constraints(constraint_data):
     :param constraint_data:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia']*6 + constraint_data.loc[i]['Turno']
+    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
             for i in constraint_data.loc[constraint_data['Año'] == 'todos'].index]
 
 
@@ -86,7 +86,7 @@ def index_general_constraints_given_year(constraint_data, year):
     :param year:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia']*6 + constraint_data.loc[i]['Turno']
+    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
             for i in constraint_data.loc[constraint_data['Año'] == year].index]
 
 
@@ -120,8 +120,10 @@ def groups_to_join(schedule_data):
     groups_to_join_ids = list()
     for i in schedule_data.index:
         if schedule_data.loc[i]['Unir'] != '-':
-            ids = schedule_data.loc[i]['Grupo'] + '_' + schedule_data.loc[i]['Asignatura']+'_' + schedule_data.loc[i]['Orden'],\
-                  schedule_data.loc[i]['Unir'] + '_' + schedule_data.loc[i]['Asignatura']+'_' + schedule_data.loc[i]['Orden']
+            ids = schedule_data.loc[i]['Grupo'] + '_' + schedule_data.loc[i]['Asignatura'] + '_' + schedule_data.loc[i][
+                'Orden'], \
+                  schedule_data.loc[i]['Unir'] + '_' + schedule_data.loc[i]['Asignatura'] + '_' + schedule_data.loc[i][
+                      'Orden']
             groups_to_join_ids.append(ids)
 
     return groups_to_join_ids
@@ -143,7 +145,6 @@ def groups_constraint_by_teacher(schedule_data, teacher):
 
 
 def groups_with_teacher_constraint(schedule_data):
-
     '''
 
     :param schedule_data:
@@ -175,10 +176,11 @@ def activities_different_days(schedule_data):
             group_subject = group_activities.loc[group_activities['Asignatura'] == subject].reset_index(drop='index')
             for g_s in range(len(group_subject)):
                 for g_s2 in range(g_s + 1, len(group_subject)):
-                    ids_act_diff_days.append((group_subject.loc[g_s]['Grupo'] + '_' + group_subject.loc[g_s]['Asignatura']
-                                              + '_' + group_subject.loc[g_s]['Orden'],
-                                              group_subject.loc[g_s2]['Grupo'] + '_' + group_subject.loc[g_s2]['Asignatura']
-                                              + '_' + group_subject.loc[g_s2]['Orden']))
+                    ids_act_diff_days.append(
+                        (group_subject.loc[g_s]['Grupo'] + '_' + group_subject.loc[g_s]['Asignatura']
+                         + '_' + group_subject.loc[g_s]['Orden'],
+                         group_subject.loc[g_s2]['Grupo'] + '_' + group_subject.loc[g_s2]['Asignatura']
+                         + '_' + group_subject.loc[g_s2]['Orden']))
     return ids_act_diff_days
 
 
@@ -189,18 +191,18 @@ def activities_order(schedule_data):
         group_activities = schedule_data.loc[schedule_data['Grupo'] == group].reset_index(drop='index')
         subjects_of_group = set(group_activities['Asignatura'])
         for subject in subjects_of_group:
-            group_subject = group_activities.loc[group_activities['Asignatura'] == subject].sort_values(by='Orden').reset_index(drop='index')
-            for g_s in range(len(group_subject)-1):
+            group_subject = group_activities.loc[group_activities['Asignatura'] == subject].sort_values(
+                by='Orden').reset_index(drop='index')
+            for g_s in range(len(group_subject) - 1):
                 ids_act_order.append(
-                        (group_subject.loc[g_s]['Grupo'] + '_' + group_subject.loc[g_s]['Asignatura']
-                         + '_' + group_subject.loc[g_s]['Orden'],
-                         group_subject.loc[g_s+1]['Grupo'] + '_' + group_subject.loc[g_s+1]['Asignatura']
-                         + '_' + group_subject.loc[g_s+1]['Orden']))
+                    (group_subject.loc[g_s]['Grupo'] + '_' + group_subject.loc[g_s]['Asignatura']
+                     + '_' + group_subject.loc[g_s]['Orden'],
+                     group_subject.loc[g_s + 1]['Grupo'] + '_' + group_subject.loc[g_s + 1]['Asignatura']
+                     + '_' + group_subject.loc[g_s + 1]['Orden']))
     return ids_act_order
 
 
 def count_classes_per_year(schedule_data):
-
     classes_per_year = list()
 
     for year in range(1, 6):
@@ -215,19 +217,17 @@ def count_classes_per_year(schedule_data):
 
 
 def count_available_slots_per_year(general_constraint):
-
     available_slots_per_year = list()
     count_gen_const = len(general_constraint.loc[general_constraint['Año'] == 'todos'])
 
     for year in range(1, 6):
         count_year = len(general_constraint.loc[general_constraint['Año'] == str(year)])
-        available_slots_per_year.append((year, STANDARD_WEEK_SLOTS-count_gen_const-count_year))
+        available_slots_per_year.append((year, STANDARD_WEEK_SLOTS - count_gen_const - count_year))
 
     return available_slots_per_year
 
 
 def count_opposite_session_slots(schedule_data, general_constraints):
-
     classes_per_year = count_classes_per_year(schedule_data)
     available_slots_per_year = count_available_slots_per_year(general_constraints)
     opposite_session_need = dict()
@@ -251,3 +251,42 @@ def get_session_given_year(schedule_data, year):
     if len(data) != 0:
         session = data[0]
     return session
+
+
+def get_optimization_bit_maps_same_subject_and_order(schedule_data):
+    pairs = list()
+    for year in schedule_data.groupby('Año').count().index:
+        for subject in schedule_data.loc[schedule_data['Año'] == year].groupby('Asignatura').count().index:
+            for order in schedule_data.loc[(schedule_data['Año'] == year) &
+                    (schedule_data['Asignatura'] == subject)].groupby('Orden').count().index:
+                data = schedule_data.loc[(schedule_data['Año'] == year) &
+                                         (schedule_data['Asignatura'] == subject) &
+                                         (schedule_data['Orden'] == order) &
+                                         (schedule_data['Unir'] == '-')].reset_index(drop='index')
+                length = len(data)
+                for i in range(length):
+                    for j in range(i+1, length):
+                        pairs.append((data.loc[i]['Grupo'] + '_' + data.loc[i]['Asignatura'] + '_'
+                                      + data.loc[i]['Orden'],
+                                      data.loc[j]['Grupo'] + '_' + data.loc[j]['Asignatura'] + '_'
+                                      + data.loc[j]['Orden']))
+    return pairs
+
+
+def get_optimization_bit_maps_same_subject_and_group(schedule_data):
+    pairs = list()
+    for year in pd.unique(schedule_data['Año']):
+        for group in pd.unique(schedule_data.loc[schedule_data['Año'] == year]['Grupo']):
+            for subject in pd.unique(schedule_data.loc[(schedule_data['Año'] == year) &
+                    (schedule_data['Grupo'] == group)]['Asignatura']):
+                data = schedule_data.loc[(schedule_data['Año'] == year) &
+                                         (schedule_data['Asignatura'] == subject) &
+                                         (schedule_data['Grupo'] == group)].reset_index(drop='index')
+                length = len(data)
+                for i in range(length):
+                    for j in range(i + 1, length):
+                        pairs.append((data.loc[i]['Grupo'] + '_' + data.loc[i]['Asignatura'] + '_'
+                                      + data.loc[i]['Orden'],
+                                      data.loc[j]['Grupo'] + '_' + data.loc[j]['Asignatura'] + '_'
+                                      + data.loc[j]['Orden']))
+    return pairs

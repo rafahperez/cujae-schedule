@@ -1,9 +1,12 @@
 import sys
+import logging
 import pandas as pd
 import pymzn
 from write_mzn import write_mzn_file
-from xml_reader import xml_to_dataframe, read_general_constraints, read_teacher_constraints
+from read_xml import xml_to_dataframe, read_general_constraints, read_teacher_constraints
 
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 schedule = xml_to_dataframe(sys.argv[1], sys.argv[2], sys.argv[3])
 general_constraints = read_general_constraints(sys.argv[4])
@@ -12,7 +15,7 @@ teacher_constraints = read_teacher_constraints(sys.argv[5])
 write_mzn_file(schedule, general_constraints, teacher_constraints)
 
 days_of_the_week = {0: 'Lunes', 1: 'Martes', 2: 'Miercoles', 3: 'Jueves', 4: 'Viernes'}
-solution = pymzn.minizinc('test_file.mzn', data={'turnos': 30})
+solution = pymzn.minizinc('test_file.mzn', data={'turnos': 30, }, timeout=600)
 solved_ids_bitmap = solution[0]
 
 print('GROUPS SCHEDULES')
