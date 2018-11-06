@@ -12,7 +12,12 @@ log = logging.getLogger(__name__)
 schedule = xml_to_dataframe(sys.argv[1], sys.argv[2], sys.argv[3])
 general_constraints = read_general_constraints(sys.argv[4])
 teacher_constraints = read_teacher_constraints(sys.argv[5])
+
 time_to_run = int(sys.argv[6])
+
+if time_to_run == -1:
+    time_to_run = None
+
 cores = int(sys.argv[7])
 
 machine_cores = multiprocessing.cpu_count()
