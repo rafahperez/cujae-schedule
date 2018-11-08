@@ -1,0 +1,12 @@
+SECONDS_IN_MINUTE = 60
+GROUP = 'Grupo'
+SUBJECT = 'Asignatura'
+ORDER = 'Orden'
+TEACHER = 'Profesor'
+TYPE = 'Tipo'
+YEAR = 'Año'
+SESSION = 'Sesion'
+JOIN = 'Unir'
+WITH = 'Con'
+DAY = 'Dia'
+SLOT = 'Turno'
