@@ -1,0 +1,17 @@
+# Información: {c = 'Conferencia', p = 'Práctica', l = 'Laboratorio', s = 'Seminario', t = 'Taller', e = 'Evaluación'}
+# Estructura: año,asignatura:c,p/c,p,p/c,l
+-2
+M3:c,p
+RA:c,p,l
+AC:c,p
+ED:c,p,p
+PSCT:c
+II3:c,c
+-3
+PEM:l,c,p
+SO:p,l
+BDA:p,l
+SN:c,c
+PW:c,p,l
+GEF:c,p
+PSCT:c

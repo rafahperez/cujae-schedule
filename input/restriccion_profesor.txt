@@ -1,0 +1,5 @@
+# Estructura: profesor:día/turno
+# Para añadir una restricción para todos los años escribir '-' en el apartado año.
+ldenis:4/1
+ldenis:4/2
+ldenis:4/3
