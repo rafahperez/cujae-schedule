@@ -117,7 +117,7 @@ def join_sequence_relation(sequence, relation):
         for j in relation.loc[(relation[YEAR] == year) &
                 (relation[SUBJECT] == subject) &
                 (relation[TYPE] == type)].index:
-            teacher = relation.loc[j][SUBJECT]
+            teacher = relation.loc[j][TEACHER]
             group = relation.loc[j][GROUP]
             sequence_relation.loc[index] = pd.Series([year, session, subject, type, order, teacher, group, '-'],
                                                      index=[YEAR, SESSION, SUBJECT, TYPE, ORDER,
