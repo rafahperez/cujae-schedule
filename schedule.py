@@ -5,6 +5,10 @@ MORNING_CLOSED = [1, 2, 3, 7, 8, 9, 13, 14, 15, 19, 20, 21, 25, 26, 27]
 BREAK_INDEX = [(3, 4), (9, 10), (15, 16), (21, 22), (27, 28)]
 
 STANDARD_WEEK_SLOTS = 15
+SLOTS_PER_WEEK = 30
+SLOTS_PER_DAY = 6
+MORNING_SESSION = 'm'
+DAYS_OF_WEEK = {0: 'Lunes', 1: 'Martes', 2: 'Miercoles', 3: 'Jueves', 4: 'Viernes'}
 
 
 def create_bit_maps_ids(schedule_data):
@@ -71,8 +75,8 @@ def index_general_constraints(constraint_data):
     :param constraint_data:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
-            for i in constraint_data.loc[constraint_data['Año'] == 'todos'].index]
+    return [int(constraint_data.loc[i]['Dia']) * 6 + int(constraint_data.loc[i]['Turno'])
+            for i in constraint_data.loc[constraint_data['Año'] == '-'].index]
 
 
 def index_general_constraints_per_years(constraint_data):
@@ -86,7 +90,7 @@ def index_general_constraints_given_year(constraint_data, year):
     :param year:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
+    return [int(constraint_data.loc[i]['Dia']) * 6 + int(constraint_data.loc[i]['Turno'])
             for i in constraint_data.loc[constraint_data['Año'] == year].index]
 
 
@@ -97,7 +101,7 @@ def index_constraints_given_teacher(constraint_data, teacher):
     :param teacher:
     :return:
     '''
-    return [constraint_data.loc[i]['Dia'] * 6 + constraint_data.loc[i]['Turno']
+    return [int(constraint_data.loc[i]['Dia']) * 6 + int(constraint_data.loc[i]['Turno'])
             for i in constraint_data.loc[constraint_data['Profesor'] == teacher].index]
 
 
@@ -218,7 +222,7 @@ def count_classes_per_year(schedule_data):
 
 def count_available_slots_per_year(general_constraint):
     available_slots_per_year = list()
-    count_gen_const = len(general_constraint.loc[general_constraint['Año'] == 'todos'])
+    count_gen_const = len(general_constraint.loc[general_constraint['Año'] == '-'])
 
     for year in range(1, 6):
         count_year = len(general_constraint.loc[general_constraint['Año'] == str(year)])
@@ -283,10 +287,15 @@ def get_optimization_bit_maps_same_subject_and_group(schedule_data):
                                          (schedule_data['Asignatura'] == subject) &
                                          (schedule_data['Grupo'] == group)].reset_index(drop='index')
                 length = len(data)
-                for i in range(length):
-                    for j in range(i + 1, length):
-                        pairs.append((data.loc[i]['Grupo'] + '_' + data.loc[i]['Asignatura'] + '_'
-                                      + data.loc[i]['Orden'],
-                                      data.loc[j]['Grupo'] + '_' + data.loc[j]['Asignatura'] + '_'
-                                      + data.loc[j]['Orden']))
+                for i in range(length-1):
+                    pairs.append((data.loc[i]['Grupo'] + '_' + data.loc[i]['Asignatura'] + '_' + data.loc[i]['Orden'],
+                                  data.loc[i+1]['Grupo'] + '_' + data.loc[i+1]['Asignatura'] + '_' + data.loc[i+1]['Orden']))
     return pairs
+
+
+def get_optimization_bit_maps_first_order(schedule_data):
+    arr = list()
+    for i in schedule_data.loc[schedule_data['Orden'] == '1'].index:
+        arr.append(schedule_data.loc[i]['Grupo'] + '_' + schedule_data.loc[i]['Asignatura'] + '_' +
+                   schedule_data.loc[i]['Orden'])
+    return arr

@@ -1,6 +1,7 @@
 SECONDS_IN_MINUTE = 60
 GROUP = 'Grupo'
 SUBJECT = 'Asignatura'
+WEEK = 'Semana'
 ORDER = 'Orden'
 TEACHER = 'Profesor'
 TYPE = 'Tipo'

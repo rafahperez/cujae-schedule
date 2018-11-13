@@ -1,16 +1,18 @@
 import logging
+from util import *
 from schedule import *
 
 LOG = logging.getLogger(__name__)
 CONSTRAINTS_FILE = 'test_file.mzn'
 
 
-def write_mzn_file(schedule, general_constraints, teacher_constraints):
+def write_file(schedule, general_constraints, teacher_constraints):
     """
 
     :return:
     """
-    
+    LOG.info('Started writing the mzn file.')
+
     bit_maps = create_bit_maps_ids(schedule)
     groups_to_join_ids = groups_to_join(schedule)
     ids_constraint_teacher = groups_with_teacher_constraint(schedule)
@@ -19,7 +21,7 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
     index_general_const = index_general_constraints(general_constraints)
     bit_maps_per_years = create_bit_maps_per_year(schedule)
     index_general_const_per_years = index_general_constraints_per_years(general_constraints)
-    teachers_with_constraints = pd.unique(teacher_constraints['Profesor'])
+    teachers_with_constraints = pd.unique(teacher_constraints[TEACHER])
     bit_maps_per_teachers = create_bit_maps_ids_given_teacher_list(schedule, teachers_with_constraints)
     index_const_per_teachers = index_constraints_given_teacher_list(teacher_constraints, teachers_with_constraints)
     opposite_session_slots = count_opposite_session_slots(schedule, general_constraints)
@@ -27,11 +29,11 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
 
     write_header()
     write_bit_maps(schedule)
-    write_group_constraint(schedule)
 
+    write_group_constraint(schedule)
     write_file_join_groups(groups_to_join_ids)
     write_file_groups_with_teacher_constraint(ids_constraint_teacher)
-    write_file_activities_different_days(ids_acts_different_days)
+    #write_file_activities_different_days(ids_acts_different_days)
     write_file_activities_order(ids_acts_order)
     write_general_constraint(bit_maps, index_general_const)
     write_general_constraint_per_year(bit_maps_per_years, index_general_const_per_years)
@@ -40,6 +42,8 @@ def write_mzn_file(schedule, general_constraints, teacher_constraints):
     write_opposite_session_constraint(bit_maps_per_group, opposite_session_slots)
 
     write_objective_function(schedule)
+
+    LOG.info('Finished writing the mzn file.')
 
 
 def write_header():
@@ -51,7 +55,7 @@ def write_header():
         file.write('include "globals.mzn";\n')
         file.write('int: turnos;\n')
 
-    LOG.info('The process of writing the mzn file has started.')
+    LOG.info('Finished writing the mzn file header.')
 
 
 def write_bit_maps(schedule_data):
@@ -80,7 +84,7 @@ def write_bit_maps(schedule_data):
 def write_group_constraint(schedule_data):
 
     bit_maps = create_bit_maps_ids(schedule_data)
-    groups = pd.unique(schedule_data['Grupo'])
+    groups = pd.unique(schedule_data[GROUP])
 
     for group in groups:
         constraint_group = 'constraint forall (i in 1..turnos) ('
@@ -134,7 +138,6 @@ def write_file_activities_different_days(ids_acts_diff_days):
     :return:
     """
     with open(CONSTRAINTS_FILE, mode='a') as file:
-        file.write('function var int: index(array[int] of var int: x) = sum([x[i]*i | i in 1..length(x)]);'+'\n\n')
         file.write('predicate diff_day(array[int] of var int: g1, array[int] of var int: g2) = '
                    '(index(g1) - 1) div 6 != (index(g2) - 1) div 6;'+'\n\n')
         for act1, act2 in ids_acts_diff_days:
@@ -145,7 +148,7 @@ def write_file_activities_order(ids_acts_order):
     with open(CONSTRAINTS_FILE, mode='a') as file:
         file.write('\n')
         for act1, act2 in ids_acts_order:
-            file.write('constraint index(' + act1 + ') < index(' + act2 + ');\n')
+            file.write('constraint day(' + act1 + ') < day(' + act2 + ');\n')
 
 
 def write_general_constraint(bit_maps, index_general_const):
@@ -198,7 +201,7 @@ def write_opposite_session_constraint(bit_maps_per_group, opposite_session_slots
         file.write('\n')
         for year, group, bit_maps in bit_maps_per_group:
             sess, needed_slots = opposite_session_slots[str(year)]
-            indexes = AFTERNOON_CLOSED if sess == 'M' else MORNING_CLOSED
+            indexes = AFTERNOON_CLOSED if sess == MORNING_SESSION else MORNING_CLOSED
 
             len_bit_maps = len(bit_maps)
             len_indexes = len(indexes)
@@ -230,29 +233,31 @@ def write_objective_function(schedule_data):
     bit_maps_subject_group = get_optimization_bit_maps_same_subject_and_group(schedule_data)
     length_sg = len(bit_maps_subject_group)
 
+    bit_maps_first_order = get_optimization_bit_maps_first_order(schedule_data)
+    length_fo = len(bit_maps_first_order)
+
     with open(CONSTRAINTS_FILE, mode='a') as file:
         file.write('\n')
-        file.write('function var int: day(array[int] of var int: x) = (index(x) - 1) div 6;')
+        file.write('function var int: index(array[int] of var int: x) = sum([x[i]*i | i in 1..length(x)]);')
 
         file.write('\n')
-        file.write('function var int: penalty(array[int] of var int: x, array[int] of var int: y) = '
-                   'if day(x) != day(y) then 30 else 1 endif;')
+        file.write('function var int: day(array[int] of var int: x) = (index(x) - 1) div 6;')
 
         file.write('\n')
         file.write('function var int: day_distance(array[int] of var int: x, array[int] of var int: y) = '
                    'abs(day(x) - day(y));')
 
-        file.write('\n')
-        file.write('function var int: distance(array[int] of var int: x, array[int] of var int: y) = '
-                   'penalty(x, y) * abs(index(x) - index(y));')
-
-        file.write('\n')
+        file.write('\n\n')
         file.write('solve minimize ')
 
         for i in range(length_so):
             bm_1, bm_2 = bit_maps_subject_order[i]
-            # !!! Using day_distance instead of distance
             file.write('day_distance(' + bm_1 + ', ' + bm_2 + ')')
+            file.write(' + ')
+
+        for k in range(length_fo):
+            bm = bit_maps_first_order[k]
+            file.write('day(' + bm + ')')
             file.write(' + ')
 
         for j in range(length_sg):
