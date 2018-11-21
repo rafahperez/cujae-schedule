@@ -1,3 +1,0 @@
-# Estructura: año:día/turno
-# Para añadir una restricción para todos los años escribir '-' en el apartado año.
-5:2/3
