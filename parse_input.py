@@ -1,10 +1,12 @@
 import os
+import datetime
+import calendar
 import pandas as pd
 from util import *
 
 
 def read_sequence(file_dir):
-    data = pd.DataFrame(columns=[YEAR, SUBJECT, TYPE, WEEK, ORDER])
+    data = pd.DataFrame(columns=[YEAR, SUBJECT, TYPE, WEEK, ORDER, AFTER])
     index = 0
 
     with open(file_dir, mode='r') as file:
@@ -23,10 +25,20 @@ def read_sequence(file_dir):
                 for week in range(1, len(weeks_info)+1):
                     order = 1
                     for lecture in weeks_info[week-1].split(','):
-                        data.loc[index] = pd.Series([year, subject, lecture, str(week), str(order)],
-                                                    index=[YEAR, SUBJECT, TYPE, WEEK, ORDER])
-                        index += 1
-                        order += 1
+                        n = lecture.count('-')
+                        if n == 0:
+                            data.loc[index] = pd.Series([year, subject, lecture, str(week), str(order), '-'],
+                                                        index=[YEAR, SUBJECT, TYPE, WEEK, ORDER, AFTER])
+                            index += 1
+                            order += 1
+                        else:
+                            after = '-'
+                            for lec in lecture.split('-'):
+                                data.loc[index] = pd.Series([year, subject, lec, str(week), str(order), after],
+                                                            index=[YEAR, SUBJECT, TYPE, WEEK, ORDER, AFTER])
+                                after = str(order)
+                                index += 1
+                                order += 1
 
     return data
 
@@ -93,49 +105,75 @@ def read_union(file_dir):
             else:
                 line = line.replace(' ', '')
                 line = line.replace('\n', '')
-                groups, subject_info = line.split(':')
-                g1, g2 = groups.split(',')
-                subject, types = subject_info.split('/')
-                for type_ in types.split(','):
-                    data.loc[index] = pd.Series([subject, type_, 'G' + g1, 'G' + g2], index=[SUBJECT, TYPE, JOIN, WITH])
-                    index += 1
+                groups, subjects_info = line.split(':')
+                arr_groups = groups.split(',')
+                for subject in subjects_info.split(';'):
+                    sub, types = subject.split('/')
+                    for i in range(len(arr_groups)-1):
+                        for type_ in types.split(','):
+                            data.loc[index] = pd.Series([sub, type_, 'G' + arr_groups[i], 'G' + arr_groups[i+1]], index=[SUBJECT, TYPE, JOIN, WITH])
+                            index += 1
     return data
 
 
 def read_general_constraint(file_dir):
-    data = pd.DataFrame(columns=[YEAR, DAY, SLOT])
+    data = pd.DataFrame(columns=[YEAR, WEEK, DAY, SLOT])
     index = 0
+    first_day = None
 
     with open(file_dir, mode='r') as file:
         for line in file.readlines():
             if line.startswith('#'):
                 continue
-            else:
+            if line.startswith('!'):
                 line = line.replace(' ', '')
                 line = line.replace('\n', '')
-                year, day_info = line.split(':')
-                day, slot = day_info.split('/')
-                day = str(int(day) - 1)
-                data.loc[index] = pd.Series([year, day, slot], index=[YEAR, DAY, SLOT])
+                day, month, year = line[1:].split('/')
+                first_day = datetime.date(int(year), int(month), int(day))
+            else:
+                assert first_day is not None
+                line = line.replace(' ', '')
+                line = line.replace('\n', '')
+                school_year, day_info = line.split(':')
+                day_info, slot = day_info.split(';')
+                day, month, year = day_info.split('/')
+
+                date = datetime.date(int(year), int(month), int(day))
+                week = 1 + (date - first_day).days // 7
+                weekday = calendar.weekday(int(year), int(month), int(day))
+
+                data.loc[index] = pd.Series([school_year, str(week), str(weekday), slot], index=[YEAR, WEEK, DAY, SLOT])
                 index += 1
     return data
 
 
 def read_teacher_constraint(file_dir):
-    data = pd.DataFrame(columns=[TEACHER, DAY, SLOT])
+    data = pd.DataFrame(columns=[TEACHER, WEEK, DAY, SLOT])
     index = 0
+    first_day = None
 
     with open(file_dir, mode='r') as file:
         for line in file.readlines():
             if line.startswith('#'):
                 continue
+            if line.startswith('!'):
+                line = line.replace(' ', '')
+                line = line.replace('\n', '')
+                day, month, year = line[1:].split('/')
+                first_day = datetime.date(int(year), int(month), int(day))
             else:
+                assert first_day is not None
                 line = line.replace(' ', '')
                 line = line.replace('\n', '')
                 teacher, day_info = line.split(':')
-                day, slot = day_info.split('/')
-                day = str(int(day)-1)
-                data.loc[index] = pd.Series([teacher, day, slot], index=[TEACHER, DAY, SLOT])
+                day_info, slot = day_info.split(';')
+                day, month, year = day_info.split('/')
+
+                date = datetime.date(int(year), int(month), int(day))
+                week = 1 + (date - first_day).days // 7
+                weekday = calendar.weekday(int(year), int(month), int(day))
+
+                data.loc[index] = pd.Series([teacher, str(week), str(weekday), slot], index=[TEACHER, WEEK, DAY, SLOT])
                 index += 1
     return data
 
@@ -147,7 +185,7 @@ def join_sequence_and_session(sequence, session):
 
 
 def join_sequence_and_relation(sequence, relation):
-    data = pd.DataFrame(columns=[YEAR, SESSION, SUBJECT, TYPE, ORDER, WEEK,
+    data = pd.DataFrame(columns=[YEAR, SESSION, SUBJECT, TYPE, ORDER, AFTER, WEEK,
                                  TEACHER, GROUP, JOIN])
     index = 0
     for i in sequence.index:
@@ -156,14 +194,15 @@ def join_sequence_and_relation(sequence, relation):
         subject = sequence.loc[i][SUBJECT]
         type_ = sequence.loc[i][TYPE]
         order = sequence.loc[i][ORDER]
+        after = sequence.loc[i][AFTER]
         week = sequence.loc[i][WEEK]
         for j in relation.loc[(relation[YEAR] == year) &
                  (relation[SUBJECT] == subject) &
                  (relation[TYPE] == type_)].index:
             teacher = relation.loc[j][TEACHER]
             group = relation.loc[j][GROUP]
-            data.loc[index] = pd.Series([year, session, subject, type_, order, week, teacher, group, '-'],
-                                        index=[YEAR, SESSION, SUBJECT, TYPE, ORDER, WEEK, TEACHER, GROUP, JOIN])
+            data.loc[index] = pd.Series([year, session, subject, type_, order, after, week, teacher, group, '-'],
+                                        index=[YEAR, SESSION, SUBJECT, TYPE, ORDER, AFTER, WEEK, TEACHER, GROUP, JOIN])
             index += 1
     return data
 
@@ -194,12 +233,12 @@ def read_schedule_data(sequence_dir, relation_dir, union_dir, session_dir):
 
 def load_dir_files(config_dir):
 
-    sequence_dir = os.path.join(config_dir, 'secuencia.txt')
-    session_dir = os.path.join(config_dir, 'sesion.txt')
-    relation_dir = os.path.join(config_dir, 'relacion.txt')
-    union_dir = os.path.join(config_dir, 'union.txt')
-    general_constraint_dir = os.path.join(config_dir, 'restriccion_general.txt')
-    teacher_constraint_dir = os.path.join(config_dir, 'restriccion_profesor.txt')
+    sequence_dir = os.path.join(config_dir, 'secuencia')
+    session_dir = os.path.join(config_dir, 'sesion')
+    relation_dir = os.path.join(config_dir, 'relacion')
+    union_dir = os.path.join(config_dir, 'union')
+    general_constraint_dir = os.path.join(config_dir, 'restriccion_general')
+    teacher_constraint_dir = os.path.join(config_dir, 'restriccion_profesor')
 
     assert os.path.exists(sequence_dir)
     assert os.path.exists(session_dir)
