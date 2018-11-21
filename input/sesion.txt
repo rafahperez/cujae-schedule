@@ -1,6 +1,0 @@
-# Información: {m = 'Mañana', t = 'Tarde'}
-1:t
-2:m
-3:m
-4:m
-5:m
