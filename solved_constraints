@@ -11,9 +11,12 @@ Restricciones resueltas:
 9) Generalizado a 30 espacios, teniendo en cuenta la sesion.
 10) Modeladas semanas problematicas.
 11) No puede tener ocupado ultimo de la mañana y primero de la tarde a la vez.
+12) Ver turnos especiales como los seminarios de IS, que son turnos seguidos.
+13) Las restricciones se escriben en forma de fecha.
 
 Restricciones por resolver:
-1) Ver turnos especiales como los seminarios de IS, que son turnos seguidos.
-2) Modelar la cantidad de aulas disponibles.
+1) Modelar la cantidad de aulas disponibles.
+2) Fijar un turno
 3) Optimizar tiempo de los profesores.
-4) Cómo modelar los temas optativos que hay varias clases simultaneas.
+4) Generar horarios por profesores y por asignatura
+5) Como escribir un porciento de completada la tarea

@@ -1,5 +1,13 @@
 # Información: {c = 'Conferencia', p = 'Práctica', l = 'Laboratorio', s = 'Seminario', t = 'Taller', e = 'Evaluación'}
 # Estructura: año,asignatura:c,p/c,p,p/c,l
+-1
+MD:c
+M1:c,c,p
+IP:c,p
+HC:c,p
+II1:
+FS:c,p
+II:c,c
 -2
 M3:c,c,p/c,c,p/c,c,p/c,p,c/c,p,p/s,e,c/c,p,p/p,c,p/c,c,p/p,p,s/e,c,p/c,p,s/c,c/p,p
 RA:c,p/c,p,l/c,p/c,p,e/c,p/c,p,l/c,p/c,p,l/c,p/c,p,e/c,p/c,p,p/c,p/c,s,c
@@ -15,3 +23,15 @@ SN:
 PW:c,p
 GEF:c,p
 PSCT:c
+-4
+IS2:c,c
+IO:c,p
+TO2:c,c
+TO3:c
+TO4:c
+-5
+SP:c
+PD:c
+TO8:c
+TO9:c,c
+TO10:c,c
