@@ -14,7 +14,10 @@ class MinizincWriter:
     def write_file(self, scheduler):
         LOG.info('Started writing the mzn file.')
         self.write_header()
+        self.write_classrooms_capacity(scheduler)
+        self.write_classrooms_cost(scheduler)
         self.write_bit_maps(scheduler)
+        self.write_classrooms_bit_maps(scheduler)
         self.write_group_constraint(scheduler)
         self.write_file_join_groups(scheduler)
         self.write_same_teacher_activities(scheduler)
@@ -25,6 +28,9 @@ class MinizincWriter:
         self.write_teacher_constraints(scheduler)
         self.write_break_index(scheduler)
         self.write_opposite_session_constraint(scheduler)
+        self.write_classrooms_amount_constraint(scheduler)
+        self.write_classrooms_capacity_constraint(scheduler)
+        self.write_locked_classrooms(scheduler)
         self.write_objective_function(scheduler)
         LOG.info('Finished writing the mzn file.')
 
@@ -33,6 +39,37 @@ class MinizincWriter:
             file.write('include "globals.mzn";\n')
             file.write('int: turnos;\n')
         LOG.info('Finished writing the mzn file header.')
+
+    def write_classrooms_capacity(self, scheduler):
+        capacities = scheduler.get_classroom_capacities()
+        length = len(capacities)
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('int: aulas = {};\n'.format(length))
+            file.write('array[1..aulas] of var 0..200: capacity = [')
+            for i in range(length):
+                file.write(capacities[i])
+                if i == length - 1:
+                    continue
+                else:
+                    file.write(', ')
+            file.write('];\n')
+        LOG.info('Finished writing the classroom capacities.')
+
+    def write_classrooms_cost(self, scheduler):
+        cost = scheduler.get_classrooms_cost()
+        length = len(cost)
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('array[1..aulas] of var 0..100: costs = [')
+            for i in range(length):
+                file.write(cost[i])
+                if i == length - 1:
+                    continue
+                else:
+                    file.write(', ')
+            file.write('];\n')
+        LOG.info('Finished writing the classroom costs.')
 
     def write_bit_maps(self, scheduler):
         bit_maps = scheduler.get_bit_maps()
@@ -44,6 +81,18 @@ class MinizincWriter:
                 file.write('array[1..turnos] of var 0..1: ' + bm + ';\n')
                 file.write('constraint sum(' + bm + ') = 1;\n')
         LOG.info('Finished writing the bit maps.')
+
+    def write_classrooms_bit_maps(self, scheduler):
+        bit_maps = scheduler.get_classrooms_bit_maps()
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('% Classrooms bit maps\n')
+            for bm in bit_maps.keys():
+                file.write('\n')
+                file.write('array[1..aulas] of var 0..1: ' + bm + ';\n')
+                file.write('constraint sum(' + bm + ') = 1;\n')
+                file.write('int: C_{} = {};\n'.format(bm, bit_maps[bm]))
+        LOG.info('Finished writing the classrooms bit maps.')
 
     def write_group_constraint(self, scheduler):
         groups = scheduler.get_unique_groups()
@@ -197,6 +246,43 @@ class MinizincWriter:
                             file.write(' + ')
                 file.write(' = ' + str(needed_slots) + ';\n')
 
+    def write_classrooms_amount_constraint(self, scheduler):
+        bit_maps = scheduler.get_classrooms_bit_maps()
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('% Classrooms amount constraint\n')
+            file.write('constraint forall (i,j in 1..turnos where j<=aulas) (')
+            keys = list(bit_maps.keys())
+            length = len(keys)
+            for i in range(length):
+                file.write('{}[i] * {}[j]'.format(keys[i][3:], keys[i]))
+                if i == length - 1:
+                    continue
+                else:
+                    file.write(' + ')
+            file.write(' <= 1);\n')
+        LOG.info('Finished writing the classrooms amount constraint.')
+
+    def write_classrooms_capacity_constraint(self, scheduler):
+        bit_maps = scheduler.get_classrooms_bit_maps()
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('% Classrooms capacity constraints\n')
+            for bm in bit_maps.keys():
+                file.write('constraint forall (i in 1..aulas) ({}[i] * C_{} <= capacity[i]);\n'.format(bm, bm))
+        LOG.info('Finished writing the classrooms capacity contraint.')
+
+    def write_locked_classrooms(self, scheduler):
+        locked = scheduler.get_locked_classrooms()
+        with open(self.file, mode='a') as file:
+            file.write('\n')
+            file.write('% Classrooms locked\n')
+            for key, values in locked.items():
+                if len(values) > 0:
+                    for element in values:
+                        file.write('constraint {}[{}] = 0;\n'.format(key, element))
+        LOG.info('Finished writing the locked classrooms by type.')
+
     def write_objective_function(self, scheduler):
         bit_maps_subject_order = scheduler.get_optimization_bit_maps_same_subject_and_order()
         length_so = len(bit_maps_subject_order)
@@ -206,6 +292,8 @@ class MinizincWriter:
 
         bit_maps_first_order = scheduler.get_optimization_bit_maps_first_order()
         length_fo = len(bit_maps_first_order)
+
+        classrooms_bit_maps = scheduler.get_classrooms_bit_maps()
 
         with open(self.file, mode='a') as file:
             file.write('\n')
@@ -223,6 +311,9 @@ class MinizincWriter:
                        'abs(day(x) - day(y));\n')
 
             file.write('\n')
+            file.write('function var int: cost(array[int] of var int: x) = sum([x[i]*costs[i] | i in 1..length(x)]);\n')
+
+            file.write('\n')
             file.write('solve minimize ')
 
             for i in range(length_so):
@@ -233,6 +324,10 @@ class MinizincWriter:
             for k in range(length_fo):
                 bm = bit_maps_first_order[k]
                 file.write('day(' + bm + ')')
+                file.write(' + ')
+
+            for c in classrooms_bit_maps.keys():
+                file.write('cost(' + c + ')')
                 file.write(' + ')
 
             for j in range(length_sg):

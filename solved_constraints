@@ -13,10 +13,9 @@ Restricciones resueltas:
 11) No puede tener ocupado ultimo de la mañana y primero de la tarde a la vez.
 12) Ver turnos especiales como los seminarios de IS, que son turnos seguidos.
 13) Las restricciones se escriben en forma de fecha.
+14) Aulas disponibles
 
 Restricciones por resolver:
-1) Modelar la cantidad de aulas disponibles.
 2) Fijar un turno
-3) Optimizar tiempo de los profesores.
 4) Generar horarios por profesores y por asignatura
-5) Como escribir un porciento de completada la tarea
+6) Modificar las restricciones generales repetitivas.

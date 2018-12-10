@@ -167,14 +167,20 @@ def read_teacher_constraint(file_dir):
                 line = line.replace('\n', '')
                 teacher, day_info = line.split(':')
                 day_info, slot = day_info.split(';')
-                day, month, year = day_info.split('/')
+                if day_info != '-':
+                    day, month, year = day_info.split('/')
 
-                date = datetime.date(int(year), int(month), int(day))
-                week = 1 + (date - first_day).days // 7
-                weekday = calendar.weekday(int(year), int(month), int(day))
+                    date = datetime.date(int(year), int(month), int(day))
+                    week = 1 + (date - first_day).days // 7
+                    weekday = calendar.weekday(int(year), int(month), int(day))
 
-                data.loc[index] = pd.Series([teacher, str(week), str(weekday), slot], index=[TEACHER, WEEK, DAY, SLOT])
-                index += 1
+                    data.loc[index] = pd.Series([teacher, str(week), str(weekday), slot], index=[TEACHER, WEEK, DAY, SLOT])
+                    index += 1
+                else:
+                    for i in range(0, 5):
+                        data.loc[index] = pd.Series([teacher, '-', str(i), slot],
+                                                    index=[TEACHER, WEEK, DAY, SLOT])
+                        index += 1
     return data
 
 
@@ -231,14 +237,91 @@ def read_schedule_data(sequence_dir, relation_dir, union_dir, session_dir):
     return schedule
 
 
-def load_dir_files(config_dir):
+def read_groups(file_dir):
+    data = pd.DataFrame(columns=[GROUP, CAPACITY])
+    index = 0
 
+    with open(file_dir, mode='r') as file:
+        for line in file.readlines():
+            if line.startswith('#'):
+                continue
+            else:
+                line = line.replace(' ', '')
+                line = line.replace('\n', '')
+                group, capacity = line.split(':')
+
+                data.loc[index] = pd.Series(['G' + group, capacity], index=[GROUP, CAPACITY])
+                index += 1
+    return data
+
+
+def read_classrooms(file_dir):
+    data = pd.DataFrame(columns=[TYPE, ID, CAPACITY, COST])
+    index = 0
+
+    with open(file_dir, mode='r') as file:
+        for line in file.readlines():
+            if line.startswith('#'):
+                continue
+            else:
+                line = line.replace(' ', '')
+                line = line.replace('\n', '')
+
+                type_, class_info = line.split('/')
+                id_, capacity = class_info.split(':')
+                cap, cost = capacity.split('-')
+                data.loc[index] = pd.Series([type_, id_, cap, cost], index=[TYPE, ID, CAPACITY, COST])
+                index += 1
+    return data
+
+
+def join_schedule_and_groups(schedule, groups):
+    schedule[GROUP_COUNT] = pd.Series([None for _ in range(len(schedule))])
+    schedule[JOIN_COUNT] = pd.Series([None for _ in range(len(schedule))])
+    # Could I use join from pandas??
+    for i in schedule.index:
+        schedule.loc[i][GROUP_COUNT] = groups.loc[groups[GROUP] == schedule.loc[i][GROUP]][CAPACITY].values[0]
+    for i in schedule.index:
+        if schedule.loc[i][JOIN_COUNT] is None:
+            if schedule.loc[i][JOIN] == '-':
+                schedule.loc[i][JOIN_COUNT] = schedule.loc[i][GROUP_COUNT]
+            else:
+                initial = i
+                done = False
+                count = int(schedule.loc[i][GROUP_COUNT])
+                while not done:
+                    index = schedule.loc[(schedule[GROUP] == schedule.loc[initial][JOIN]) & \
+                            (schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) \
+                            & (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
+                    count += int(schedule.loc[index][GROUP_COUNT])
+                    initial = index
+                    if schedule.loc[index][JOIN] == '-':
+                        done = True
+
+                initial = i
+                done = False
+                while not done:
+                    schedule.loc[initial][JOIN_COUNT] = str(count)
+                    if schedule.loc[initial][JOIN] == '-':
+                        done = True
+                    else:
+                        index = schedule.loc[(schedule[GROUP] == schedule.loc[initial][JOIN]) & (
+                                schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) \
+                                & (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
+                        initial = index
+
+    return schedule
+
+
+def load_dir_files(config_dir):
     sequence_dir = os.path.join(config_dir, 'secuencia')
     session_dir = os.path.join(config_dir, 'sesion')
     relation_dir = os.path.join(config_dir, 'relacion')
     union_dir = os.path.join(config_dir, 'union')
     general_constraint_dir = os.path.join(config_dir, 'restriccion_general')
     teacher_constraint_dir = os.path.join(config_dir, 'restriccion_profesor')
+    classrooms_dir = os.path.join(config_dir, 'aulas')
+    groups_dir = os.path.join(config_dir, 'grupos')
 
     assert os.path.exists(sequence_dir)
     assert os.path.exists(session_dir)
@@ -246,9 +329,15 @@ def load_dir_files(config_dir):
     assert os.path.exists(union_dir)
     assert os.path.exists(general_constraint_dir)
     assert os.path.exists(teacher_constraint_dir)
+    assert os.path.exists(classrooms_dir)
+    assert os.path.exists(groups_dir)
 
     schedule = read_schedule_data(sequence_dir, relation_dir, union_dir, session_dir)
     general_constraint = read_general_constraint(general_constraint_dir)
     teacher_constraint = read_teacher_constraint(teacher_constraint_dir)
+    classrooms = read_classrooms(classrooms_dir)
+    groups = read_groups(groups_dir)
 
-    return schedule, general_constraint, teacher_constraint
+    schedule = join_schedule_and_groups(schedule, groups)
+
+    return schedule, general_constraint, teacher_constraint, classrooms

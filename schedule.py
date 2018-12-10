@@ -14,10 +14,11 @@ DAYS_OF_WEEK = {0: 'Lunes', 1: 'Martes', 2: 'Miercoles', 3: 'Jueves', 4: 'Vierne
 
 class WeekScheduler:
 
-    def __init__(self, schedule, general_constraint, teacher_constraint):
+    def __init__(self, schedule, general_constraint, teacher_constraint, classrooms):
         self.schedule = schedule
         self.general_constraint = general_constraint
         self.teacher_constraint = teacher_constraint
+        self.classrooms = classrooms
 
     def get_unique_groups(self):
         return pd.unique(self.schedule[GROUP])
@@ -36,7 +37,8 @@ class WeekScheduler:
                 bit_maps.append((year, group, self.create_bit_maps_ids(self.schedule.loc[self.schedule[GROUP] == group])))
         return bit_maps
 
-    def create_bit_maps_ids(self, schedule_data):
+    @staticmethod
+    def create_bit_maps_ids(schedule_data):
         return [schedule_data.loc[i][GROUP] + '_' + schedule_data.loc[i][SUBJECT] + '_' +
                 schedule_data.loc[i][ORDER] for i in schedule_data.index]
 
@@ -207,4 +209,40 @@ class WeekScheduler:
         for i in self.schedule.loc[self.schedule[ORDER] == '1'].index:
             arr.append(self.schedule.loc[i][GROUP] + '_' + self.schedule.loc[i][SUBJECT] + '_' +
                        self.schedule.loc[i][ORDER])
+        return arr
+
+    def get_classroom_capacities(self):
+        arr = list()
+        for i in self.classrooms.index:
+            arr.append(self.classrooms.loc[i][CAPACITY])
+        return arr
+
+    def get_classrooms_bit_maps(self):
+        d = dict()
+        for i in self.schedule.loc[self.schedule[JOIN] == '-'].index:
+            length = len(self.schedule[TEACHER][i].split(','))
+            for j in range(1, length+1):
+                d['A{}_'.format(j) + self.schedule.loc[i][GROUP] + '_' + self.schedule.loc[i][SUBJECT] + '_' +
+                  self.schedule.loc[i][ORDER]] = str(int(int(self.schedule.loc[i][JOIN_COUNT]) / length))
+        return d
+
+    def get_locked_classrooms(self):
+        d = dict()
+        for i in self.schedule.loc[self.schedule[JOIN] == '-'].index:
+            length = len(self.schedule[TEACHER][i].split(','))
+            for j in range(1, length + 1):
+                d['A{}_'.format(j) + self.schedule.loc[i][GROUP] + '_' + self.schedule.loc[i][SUBJECT] + '_' +
+                  self.schedule.loc[i][ORDER]] = []
+                for c in self.classrooms.index:
+                    if (self.classrooms[TYPE][c] == self.schedule[TYPE][i]) or (self.classrooms[TYPE][c] == '-'):
+                        continue
+                    else:
+                        d['A{}_'.format(j) + self.schedule.loc[i][GROUP] + '_' + self.schedule.loc[i][SUBJECT] + '_' +
+                          self.schedule.loc[i][ORDER]] += [c+1]  # Array index starts at 1 in minizinc
+        return d
+
+    def get_classrooms_cost(self):
+        arr = list()
+        for i in self.classrooms.index:
+            arr.append(self.classrooms.loc[i][COST])
         return arr

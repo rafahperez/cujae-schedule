@@ -4,6 +4,8 @@ import logging
 import pymzn
 import multiprocessing
 import minizinc
+import sys
+from threading import Thread
 from schedule import SLOTS_PER_WEEK, WeekScheduler
 from util import *
 from parse_output import create_excels
@@ -19,16 +21,18 @@ ap.add_argument('-t', '--time', required=True, help='Optimization time in minute
 ap.add_argument('-p', '--cores', required=True, help='Number of parallel threads')
 args = ap.parse_args()
 
-schedule, general_constraint, teacher_constraint = load_dir_files(args.config)
+schedule, general_constraint, teacher_constraint, classrooms = load_dir_files(args.config)
 
 week = str(args.week)
 week_schedule = schedule.loc[schedule[WEEK] == week].reset_index(drop='index').copy()
 assert len(week_schedule) > 0
 
-week_general_const = general_constraint.loc[general_constraint[WEEK] == week].reset_index(drop='index').copy()
-week_teacher_const = teacher_constraint.loc[teacher_constraint[WEEK] == week].reset_index(drop='index').copy()
+week_general_const = general_constraint.loc[(general_constraint[WEEK] == week) |
+                                            (general_constraint[WEEK] == '-')].reset_index(drop='index').copy()
+week_teacher_const = teacher_constraint.loc[(teacher_constraint[WEEK] == week) |
+                                            (teacher_constraint[WEEK] == '-')].reset_index(drop='index').copy()
 
-scheduler = WeekScheduler(week_schedule, week_general_const, week_teacher_const)
+scheduler = WeekScheduler(week_schedule, week_general_const, week_teacher_const, classrooms)
 
 time_to_run = int(args.time)
 time_to_run *= SECONDS_IN_MINUTE
@@ -47,17 +51,29 @@ elif machine_cores < cores:
 mw = minizinc.MinizincWriter(minizinc.CONSTRAINTS_FILE)
 mw.write_file(scheduler)
 
-start_time = time.time()
 
-LOG.info('Started optimizing the schedule.')
-solution = pymzn.minizinc(minizinc.CONSTRAINTS_FILE, data={'turnos': SLOTS_PER_WEEK}, timeout=time_to_run, parallel=cores)
-LOG.info('Finished the optimization.')
+def timer():
+    for remaining in range(int(time_to_run/60), 0, -1):
+        sys.stdout.write('\r')
+        if remaining > 1:
+            sys.stdout.write('Remaining time: {:4d} minutes.'.format(remaining))
+        else:
+            sys.stdout.write('Remaining time: {:4d} minute .'.format(remaining))
+        sys.stdout.flush()
+        time.sleep(60)
+    sys.stdout.write('\rTime Complete.                \n')
 
-final_time = time.time()
-running_time = final_time - start_time
 
-LOG.info('Process finished in {} minutes.'.format(int(running_time / SECONDS_IN_MINUTE)))
+# LOG.info('Started optimizing the schedule.')
+
+timer_thread = Thread(target=timer)
+timer_thread.start()
+
+solution = pymzn.minizinc(minizinc.CONSTRAINTS_FILE, data={'turnos': SLOTS_PER_WEEK}, timeout=time_to_run,
+                          parallel=cores, force_flatten=True)
+
+# LOG.info('Finished the optimization.')
 
 solved_ids_bitmap = solution[0]
 
-create_excels(schedule, solved_ids_bitmap)
+create_excels(scheduler, solved_ids_bitmap)
