@@ -2,11 +2,11 @@
 # Estructura: g1,g2,(...):asignatura/tipo
 11,12:M1/c;IP/c;MD/c
 13,14:M1/c;IP/c;MD/c
-15,16:M1/c;IP/c;MD/c;II/p;FS/p
+15,16:M1/c;IP/c;MD/c;II/p;FS/p;MD/p;HC/p;II1/p
 11,12,13:HC/c;II1/c;II1/p;FS/c;II/c
 14,15,16:HC/c;II1/c;II1/p;FS/c;II/c
-21,22:M3/c;RA/c;ED/c;AC/c
-21,22,23:M3/e;RA/e;ED/e;AC/e;PSCT/c
-31,32:PW/c;SO/c;PEM/c;BDA/c;GEF/c;PSCT/c
+21,22:M3/c;RA/c;ED/c
+21,22,23:AC/c;PSCT/c
+31,32:PW/c;SO/c;PEM/c;BDA/c;GEF/c;PSCT/c;SN/c
 41,42:IO/c;IS2/c;TO2/c;TO3/c;TO4/c
 51,52:SP/c;PD/c;TO8/c;TO9/c;TO10/c
