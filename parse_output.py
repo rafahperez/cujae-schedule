@@ -1,9 +1,11 @@
 import pandas as pd
+import os
+import datetime
 from util import *
 from schedule import DAYS_OF_WEEK, SLOTS_PER_DAY
 
 
-def create_excels(scheduler, bitmaps):
+def create_excels(scheduler, bitmaps, week):
     groups = set(scheduler.schedule[GROUP])
     groups_schedule = dict()
     schedule_base = pd.read_excel('input/horario_base.xlsx')
@@ -37,11 +39,16 @@ def create_excels(scheduler, bitmaps):
         groups_schedule[group_id][day][slot + 1] = subject + ' (' + \
                                                    scheduler.schedule.loc[(scheduler.schedule[GROUP] == group_id)
                                                                           & (scheduler.schedule[SUBJECT] == subject)
-                                                                          & (scheduler.schedule[ORDER] == order)].Tipo.values[0] + \
-                                                   ')\n' + str(classroom)
+                                                                          & (scheduler.schedule[ORDER] == order)].Tipo.values[0]
+
+    now = datetime.datetime.now()
+    dir_path = os.path.join(os.getcwd(), 'output')
+    dir_path = os.path.join(dir_path, 'Week {} Generated {}'.format(week, now.strftime('%Y-%m-%d %H:%M')))
+    os.makedirs(dir_path)
+    os.chdir(dir_path)
 
     for group, group_schedule in groups_schedule.items():
-        group_schedule.to_excel('output/' + str(group) + '.xlsx')
+        group_schedule.to_excel(str(group) + '.xlsx')
 
 
 def propagate_joins(scheduler, classrooms_bitmaps):

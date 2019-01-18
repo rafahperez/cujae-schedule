@@ -22,9 +22,9 @@ def read_sequence(file_dir):
                 line = line.replace('\n', '')
                 subject, sequence_info = line.split(':')
                 weeks_info = sequence_info.split('/')
-                for week in range(1, len(weeks_info)+1):
+                for week in range(1, len(weeks_info) + 1):
                     order = 1
-                    for lecture in weeks_info[week-1].split(','):
+                    for lecture in weeks_info[week - 1].split(','):
                         n = lecture.count('-')
                         if n == 0:
                             data.loc[index] = pd.Series([year, subject, lecture, str(week), str(order), '-'],
@@ -109,9 +109,10 @@ def read_union(file_dir):
                 arr_groups = groups.split(',')
                 for subject in subjects_info.split(';'):
                     sub, types = subject.split('/')
-                    for i in range(len(arr_groups)-1):
+                    for i in range(len(arr_groups) - 1):
                         for type_ in types.split(','):
-                            data.loc[index] = pd.Series([sub, type_, 'G' + arr_groups[i], 'G' + arr_groups[i+1]], index=[SUBJECT, TYPE, JOIN, WITH])
+                            data.loc[index] = pd.Series([sub, type_, 'G' + arr_groups[i], 'G' + arr_groups[i + 1]],
+                                                        index=[SUBJECT, TYPE, JOIN, WITH])
                             index += 1
     return data
 
@@ -138,12 +139,27 @@ def read_general_constraint(file_dir):
                 day_info, slot = day_info.split(';')
                 day, month, year = day_info.split('/')
 
-                date = datetime.date(int(year), int(month), int(day))
-                week = 1 + (date - first_day).days // 7
-                weekday = calendar.weekday(int(year), int(month), int(day))
+                if slot != '-':
 
-                data.loc[index] = pd.Series([school_year, str(week), str(weekday), slot], index=[YEAR, WEEK, DAY, SLOT])
-                index += 1
+                    date = datetime.date(int(year), int(month), int(day))
+                    week = 1 + (date - first_day).days // 7
+                    weekday = calendar.weekday(int(year), int(month), int(day))
+
+                    data.loc[index] = pd.Series([school_year, str(week), str(weekday), slot],
+                                                index=[YEAR, WEEK, DAY, SLOT])
+                    index += 1
+
+                else:
+
+                    date = datetime.date(int(year), int(month), int(day))
+                    week = 1 + (date - first_day).days // 7
+                    weekday = calendar.weekday(int(year), int(month), int(day))
+
+                    for sl in range(1, 7):
+                        data.loc[index] = pd.Series([school_year, str(week), str(weekday), str(sl)],
+                                                    index=[YEAR, WEEK, DAY, SLOT])
+                        index += 1
+
     return data
 
 
@@ -168,14 +184,22 @@ def read_teacher_constraint(file_dir):
                 teacher, day_info = line.split(':')
                 day_info, slot = day_info.split(';')
                 if day_info != '-':
-                    day, month, year = day_info.split('/')
-
-                    date = datetime.date(int(year), int(month), int(day))
-                    week = 1 + (date - first_day).days // 7
-                    weekday = calendar.weekday(int(year), int(month), int(day))
-
-                    data.loc[index] = pd.Series([teacher, str(week), str(weekday), slot], index=[TEACHER, WEEK, DAY, SLOT])
-                    index += 1
+                    day_map = {
+                        'l': '0',
+                        'm': '1',
+                        'x': '2',
+                        'j': '3',
+                        'v': '4'
+                    }
+                    day = day_map[day_info]
+                    if slot != '-':
+                        data.loc[index] = pd.Series([teacher, '-', day, slot], index=[TEACHER, WEEK, DAY, SLOT])
+                        index += 1
+                    else:
+                        for i in range(1, 7):
+                            data.loc[index] = pd.Series([teacher, '-', day, str(i)],
+                                                        index=[TEACHER, WEEK, DAY, SLOT])
+                            index += 1
                 else:
                     for i in range(0, 5):
                         data.loc[index] = pd.Series([teacher, '-', str(i), slot],
@@ -203,8 +227,8 @@ def join_sequence_and_relation(sequence, relation):
         after = sequence.loc[i][AFTER]
         week = sequence.loc[i][WEEK]
         for j in relation.loc[(relation[YEAR] == year) &
-                 (relation[SUBJECT] == subject) &
-                 (relation[TYPE] == type_)].index:
+                              (relation[SUBJECT] == subject) &
+                              (relation[TYPE] == type_)].index:
             teacher = relation.loc[j][TEACHER]
             group = relation.loc[j][GROUP]
             data.loc[index] = pd.Series([year, session, subject, type_, order, after, week, teacher, group, '-'],
@@ -219,7 +243,8 @@ def join_sequence_and_union(sequence, union):
         type_ = union.loc[i][TYPE]
         group = union.loc[i][JOIN]
         con = union.loc[i][WITH]
-        for j in sequence.loc[(sequence[SUBJECT] == subject) & (sequence[TYPE] == type_) & (sequence[GROUP] == group)].index:
+        for j in sequence.loc[
+            (sequence[SUBJECT] == subject) & (sequence[TYPE] == type_) & (sequence[GROUP] == group)].index:
             sequence.loc[j][JOIN] = con
     return sequence
 
@@ -256,7 +281,7 @@ def read_groups(file_dir):
 
 
 def read_classrooms(file_dir):
-    data = pd.DataFrame(columns=[TYPE, ID, CAPACITY, COST])
+    data = pd.DataFrame(columns=[TYPE, ID, CAPACITY])
     index = 0
 
     with open(file_dir, mode='r') as file:
@@ -269,8 +294,7 @@ def read_classrooms(file_dir):
 
                 type_, class_info = line.split('/')
                 id_, capacity = class_info.split(':')
-                cap, cost = capacity.split('-')
-                data.loc[index] = pd.Series([type_, id_, cap, cost], index=[TYPE, ID, CAPACITY, COST])
+                data.loc[index] = pd.Series([type_, id_, capacity], index=[TYPE, ID, CAPACITY])
                 index += 1
     return data
 
@@ -291,8 +315,9 @@ def join_schedule_and_groups(schedule, groups):
                 count = int(schedule.loc[i][GROUP_COUNT])
                 while not done:
                     index = schedule.loc[(schedule[GROUP] == schedule.loc[initial][JOIN]) & \
-                            (schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) \
-                            & (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
+                                         (schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) & \
+                                         (schedule[WEEK] == schedule.loc[initial][WEEK]) & \
+                                         (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
                     count += int(schedule.loc[index][GROUP_COUNT])
                     initial = index
                     if schedule.loc[index][JOIN] == '-':
@@ -305,9 +330,10 @@ def join_schedule_and_groups(schedule, groups):
                     if schedule.loc[initial][JOIN] == '-':
                         done = True
                     else:
-                        index = schedule.loc[(schedule[GROUP] == schedule.loc[initial][JOIN]) & (
-                                schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) \
-                                & (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
+                        index = schedule.loc[(schedule[GROUP] == schedule.loc[initial][JOIN]) & \
+                                             (schedule[SUBJECT] == schedule.loc[initial][SUBJECT]) & \
+                                             (schedule[WEEK] == schedule.loc[initial][WEEK]) & \
+                                             (schedule[ORDER] == schedule.loc[initial][ORDER])].index[0]
                         initial = index
 
     return schedule

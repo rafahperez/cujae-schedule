@@ -17,5 +17,6 @@ Restricciones resueltas:
 
 Restricciones por resolver:
 2) Fijar un turno
+3) Cancelar un dia entero a un profesor
 4) Generar horarios por profesores y por asignatura
 6) Modificar las restricciones generales repetitivas.

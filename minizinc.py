@@ -15,7 +15,6 @@ class MinizincWriter:
         LOG.info('Started writing the mzn file.')
         self.write_header()
         self.write_classrooms_capacity(scheduler)
-        self.write_classrooms_cost(scheduler)
         self.write_bit_maps(scheduler)
         self.write_classrooms_bit_maps(scheduler)
         self.write_group_constraint(scheduler)
@@ -55,21 +54,6 @@ class MinizincWriter:
                     file.write(', ')
             file.write('];\n')
         LOG.info('Finished writing the classroom capacities.')
-
-    def write_classrooms_cost(self, scheduler):
-        cost = scheduler.get_classrooms_cost()
-        length = len(cost)
-        with open(self.file, mode='a') as file:
-            file.write('\n')
-            file.write('array[1..aulas] of var 0..100: costs = [')
-            for i in range(length):
-                file.write(cost[i])
-                if i == length - 1:
-                    continue
-                else:
-                    file.write(', ')
-            file.write('];\n')
-        LOG.info('Finished writing the classroom costs.')
 
     def write_bit_maps(self, scheduler):
         bit_maps = scheduler.get_bit_maps()
@@ -311,7 +295,8 @@ class MinizincWriter:
                        'abs(day(x) - day(y));\n')
 
             file.write('\n')
-            file.write('function var int: cost(array[int] of var int: x) = sum([x[i]*costs[i] | i in 1..length(x)]);\n')
+            file.write('function var int: cost(array[int] of var int: x, var int: cap) = '
+                       'sum([x[i]*capacity[i] | i in 1..length(x)]) - cap;\n')
 
             file.write('\n')
             file.write('solve minimize ')
@@ -327,7 +312,7 @@ class MinizincWriter:
                 file.write(' + ')
 
             for c in classrooms_bit_maps.keys():
-                file.write('cost(' + c + ')')
+                file.write('cost(' + c + ', C_' + c + ')')
                 file.write(' + ')
 
             for j in range(length_sg):
