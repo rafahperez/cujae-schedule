@@ -1,16 +1,16 @@
 # En este fichero se declaran el aforo máximo que puede contener cada aula
 # Estructura tipo_clase/id_aula:cant
 # El tipo de clase es '-' cuando se pueden dar lo mismo conferencias, cp, etc..
-l/lab1:40
-l/lab2:40
-l/lab3:40
+l/lab1:50
+l/lab2:50
+l/lab3:50
 -/A201:58
 -/A202:62
 -/A203:62
 -/A204:72
 -/A205:62
--/A301:30
--/A302:30
--/A303:30
+-/A301:35
+-/A302:35
+-/A303:35
 -/A305:100
 -/teatro:100

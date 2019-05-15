@@ -132,7 +132,7 @@ class MinizincWriter:
             file.write('% Activities order\n')
             file.write('\n')
             for act1, act2 in ids_acts_order:
-                file.write('constraint day(' + act1 + ') < day(' + act2 + ');\n')
+                file.write('constraint index(' + act1 + ') < index(' + act2 + ');\n')
         LOG.info('Finished writing activities order.')
 
     def write_next_to_lectures(self, scheduler):
@@ -303,7 +303,7 @@ class MinizincWriter:
 
             for i in range(length_so):
                 bm_1, bm_2 = bit_maps_subject_order[i]
-                file.write('5*day_distance(' + bm_1 + ', ' + bm_2 + ')')
+                file.write('100*day_distance(' + bm_1 + ', ' + bm_2 + ')')
                 file.write(' + ')
 
             for k in range(length_fo):
@@ -311,9 +311,9 @@ class MinizincWriter:
                 file.write('day(' + bm + ')')
                 file.write(' + ')
 
-            for c in classrooms_bit_maps.keys():
-                file.write('cost(' + c + ', C_' + c + ')')
-                file.write(' + ')
+            #for c in classrooms_bit_maps.keys():
+            #    file.write('cost(' + c + ', C_' + c + ')')
+            #    file.write(' + ')
 
             for j in range(length_sg):
                 bm_1, bm_2 = bit_maps_subject_group[j]

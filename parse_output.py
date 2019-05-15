@@ -39,7 +39,7 @@ def create_excels(scheduler, bitmaps, week):
         groups_schedule[group_id][day][slot + 1] = subject + ' (' + \
                                                    scheduler.schedule.loc[(scheduler.schedule[GROUP] == group_id)
                                                                           & (scheduler.schedule[SUBJECT] == subject)
-                                                                          & (scheduler.schedule[ORDER] == order)].Tipo.values[0]
+                                                                          & (scheduler.schedule[ORDER] == order)].Tipo.values[0] + ')'
 
     now = datetime.datetime.now()
     dir_path = os.path.join(os.getcwd(), 'output')
